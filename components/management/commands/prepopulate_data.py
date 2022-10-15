@@ -4,10 +4,11 @@ from components.utils import fetch_all_records
 
 
 class Command(BaseCommand):
-    help = "Populate Database"
+    """
+    Command to fetch data from external api and seed the database
+    """
 
-    # def add_arguments(self, parser):
-    #     parser.add_argument('poll_ids', nargs='+', type=int)
+    help = "Populate Database"
 
     def handle(self, *args, **options):
         Planet.objects.all().delete()

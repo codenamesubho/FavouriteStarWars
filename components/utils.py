@@ -3,6 +3,9 @@ from .exceptions import ExternalApiFailedException
 
 
 def fetch_all_records(api_url):
+    """
+    Iteratively fetch all records from external api
+    """
     all_records = []
     next = api_url
     while next:
