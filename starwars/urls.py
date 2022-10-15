@@ -20,6 +20,5 @@ from django.http.response import HttpResponse
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("^api/health-check/", lambda r: HttpResponse(status=204)),
     path("components/", include("components.urls")),
 ]
