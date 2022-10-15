@@ -17,6 +17,11 @@ from .models import Planet, Movie
 
 class MovieListView(APIView):
     def get(self, request):
+        """
+        Api to get list of movies,
+        if user_id is provided, we fetch movies and overwrite titles from user favourites
+        if title is provided, we filter movies based on title and from user favourites
+        """
         title = request.query_params.get("title")
         user_id = request.query_params.get("user_id")
 
@@ -52,6 +57,11 @@ class MovieListView(APIView):
 
 class PlanetListView(APIView):
     def get(self, request):
+        """
+        Api to get list of planets,
+        if user_id is provided, we fetch planets and overwrite name from user favourites
+        if name is provided, we filter planets based on name and from user favourites
+        """
         name = request.query_params.get("name")
         user_id = request.query_params.get("user_id")
 
@@ -87,6 +97,9 @@ class PlanetListView(APIView):
 
 class FavouriteMovieView(APIView):
     def post(self, request):
+        """
+        Api to add movie to user favourite
+        """
         serializer = FavouriteMovieSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -97,6 +110,9 @@ class FavouriteMovieView(APIView):
 
 class FavouritePlanetView(APIView):
     def post(self, request):
+        """
+        Api to add planet to user favourite
+        """
         serializer = FavouritePlanetSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

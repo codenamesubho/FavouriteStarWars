@@ -28,7 +28,7 @@ class MovieListApiTest(APITestCase):
 
     def test_get_movielist_without_any_param(self):
         """
-        Ensure we can create a new account object.
+        Get List of movies when no params are sent
         """
         url = reverse("movie-list")
         response = self.client.get(url, format="json")
@@ -41,7 +41,7 @@ class MovieListApiTest(APITestCase):
 
     def test_get_movielist_with_user_param(self):
         """
-        Ensure we can create a new account object.
+        Get List of movies when user param is sent but no favourite movie is added
         """
         url = reverse("movie-list")
         response = self.client.get(url, data={"user_id": 10}, format="json")
@@ -54,7 +54,7 @@ class MovieListApiTest(APITestCase):
 
     def test_get_movielist_with_title_param(self):
         """
-        Ensure we can create a new account object.
+        Get List of movies when title is sent and no favourites exist, validate api returns only matching object
         """
         url = reverse("movie-list")
         movie = Movie.objects.first()
@@ -68,7 +68,7 @@ class MovieListApiTest(APITestCase):
 
     def test_get_movielist_with_user_param_and_favourite(self):
         """
-        Ensure we can create a new account object.
+        Validate when user is passed and favourites exist, movie titles are overwritten as per user defined in favourites
         """
         movie_with_custom_title = MovieFactory()
         movie_without_custom_title = MovieFactory()
@@ -91,6 +91,8 @@ class MovieListApiTest(APITestCase):
         )
         FavouriteMovieFactory(movie=movie_without_custom_title, user_id=user_id_2)
 
+        # validate user_2 sees title as set in favourites custom_title
+        # incase where its in favourite but no custom title is provided, it retains its original title
         url = reverse("movie-list")
         response = self.client.get(url, data={"user_id": user_id_2}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -106,6 +108,7 @@ class MovieListApiTest(APITestCase):
             else:
                 self.assertFalse(node["is_favourite"])
 
+        # validate user_1 sees its own custom_title
         url = reverse("movie-list")
         response = self.client.get(url, data={"user_id": user_id_1}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -120,7 +123,8 @@ class MovieListApiTest(APITestCase):
 
     def test_get_movielist_with_user_and_title_param_and_favourite(self):
         """
-        Ensure we can create a new account object.
+        Validate when user and search title is passed and favourites exist, movies are searched based on title as well as titles
+        defined in favourites
         """
         search_title_1 = faker.word()
         movie_with_custom_title = MovieFactory()
@@ -143,6 +147,7 @@ class MovieListApiTest(APITestCase):
         )
         FavouriteMovieFactory(movie=movie_without_custom_title, user_id=user_id_2)
 
+        # validate user_1 sees 2 records one matches title and another matches favorites custom title
         url = reverse("movie-list")
         response = self.client.get(
             url, data={"user_id": user_id_1, "title": search_title_1}, format="json"
@@ -159,6 +164,7 @@ class MovieListApiTest(APITestCase):
                 self.assertEqual(node["title"], movie_without_custom_title.title)
                 self.assertFalse(node["is_favourite"])
 
+        # Incase of user 2, searched title matches with only favourite custom title, hence 1 record returned
         url = reverse("movie-list")
         response = self.client.get(
             url, data={"user_id": user_id_2, "title": custom_title_2}, format="json"
@@ -180,7 +186,7 @@ class FavouriteMovieApiTest(APITestCase):
 
     def test_post_add_favourite_movie(self):
         """
-        Ensure we can create a new account object.
+        Validating Api call to add movie to user favourite
         """
         movie = Movie.objects.first()
         user_id = faker.pyint()
@@ -192,9 +198,9 @@ class FavouriteMovieApiTest(APITestCase):
         data = FavouriteMovieSerializer(FavouriteMovie.objects.first()).data
         self.assertEqual(response.json(), {"data": data})
 
-    def test_post_add_favourite_movie_with_custom_name(self):
+    def test_post_add_favourite_movie_with_custom_title(self):
         """
-        Ensure we can create a new account object.
+        Validating Api call to add movie to user favourite with custom_title
         """
         movie = Movie.objects.first()
         user_id = faker.pyint()
@@ -211,6 +217,11 @@ class FavouriteMovieApiTest(APITestCase):
         self.assertEqual(response.json(), {"data": data})
 
     def test_post_add_favourite_movie_with_incorrect_param(self):
+        """
+        Validating favourite Api , returns validationerror incase the parameters are malformed
+        """
+
+        # invalid movie_id
         user_id = faker.pyint()
         url = reverse("favourite-movie")
         custom_title = faker.word()
@@ -225,6 +236,7 @@ class FavouriteMovieApiTest(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        # invalid user_id
         movie = Movie.objects.first()
         response = self.client.post(
             url,

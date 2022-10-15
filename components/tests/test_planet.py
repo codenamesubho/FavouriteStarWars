@@ -24,7 +24,7 @@ class PlanetListApiTest(APITestCase):
 
     def test_get_planetlist_without_any_param(self):
         """
-        Ensure we can create a new account object.
+        Get List of planet when no params are sent
         """
         url = reverse("planet-list")
         response = self.client.get(url, format="json")
@@ -37,7 +37,7 @@ class PlanetListApiTest(APITestCase):
 
     def test_get_planetlist_with_user_param(self):
         """
-        Ensure we can create a new account object.
+        Get List of planet when user param is sent and no user favourite exist
         """
         url = reverse("planet-list")
         response = self.client.get(url, data={"user_id": 10}, format="json")
@@ -48,9 +48,9 @@ class PlanetListApiTest(APITestCase):
         output = json.loads(json.dumps({"results": data}))
         self.assertEqual(response.json(), output)
 
-    def test_get_planetlist_with_title_param(self):
+    def test_get_planetlist_with_name_param(self):
         """
-        Ensure we can create a new account object.
+        Get List of planet when name is sent and no favourites exist, validate api returns only matching object
         """
         url = reverse("planet-list")
         planet = Planet.objects.first()
@@ -64,7 +64,7 @@ class PlanetListApiTest(APITestCase):
 
     def test_get_planetlist_with_user_param_and_favourite(self):
         """
-        Ensure we can create a new account object.
+        Validate when user is passed and favourites exist, planet name are overwritten as per user defined in favourites
         """
         planet_with_custom_name = PlanetFactory()
         planet_without_custom_name = PlanetFactory()
@@ -87,6 +87,8 @@ class PlanetListApiTest(APITestCase):
         )
         FavouritePlanetFactory(planet=planet_without_custom_name, user_id=user_id_2)
 
+        # validate user_2 sees planet name as set in favourites custom_name
+        # incase where its in favourite but no custom name is provided, it retains its original name
         url = reverse("planet-list")
         response = self.client.get(url, data={"user_id": user_id_2}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -102,6 +104,7 @@ class PlanetListApiTest(APITestCase):
             else:
                 self.assertFalse(node["is_favourite"])
 
+        # validate user_1 sees its own custom_name
         url = reverse("planet-list")
         response = self.client.get(url, data={"user_id": user_id_1}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -116,7 +119,8 @@ class PlanetListApiTest(APITestCase):
 
     def test_get_planetlist_with_user_and_title_param_and_favourite(self):
         """
-        Ensure we can create a new account object.
+        Validate when user and search name is passed and favourites exist, planets are searched based on name as well as names
+        defined in favourites
         """
         search_name_1 = faker.word()
         planet_with_custom_name = PlanetFactory()
@@ -139,6 +143,7 @@ class PlanetListApiTest(APITestCase):
         )
         FavouritePlanetFactory(planet=planet_without_custom_name, user_id=user_id_2)
 
+        # validate user_1 sees 2 records one matches name and another matches favorites custom name
         url = reverse("planet-list")
         response = self.client.get(
             url, data={"user_id": user_id_1, "name": search_name_1}, format="json"
@@ -155,6 +160,7 @@ class PlanetListApiTest(APITestCase):
                 self.assertEqual(node["name"], planet_without_custom_name.name)
                 self.assertFalse(node["is_favourite"])
 
+        # Incase of user 2, searched name matches with only favourite custom name, hence 1 record returned
         url = reverse("planet-list")
         response = self.client.get(
             url, data={"user_id": user_id_2, "name": custom_name_2}, format="json"
@@ -176,7 +182,7 @@ class FavouritePlanetApiTest(APITestCase):
 
     def test_post_add_favourite_planet(self):
         """
-        Ensure we can create a new account object.
+        Validating Api call to add planet to user favourite
         """
         planet = Planet.objects.first()
         user_id = faker.pyint()
@@ -190,7 +196,7 @@ class FavouritePlanetApiTest(APITestCase):
 
     def test_post_add_favourite_planet_with_custom_name(self):
         """
-        Ensure we can create a new account object.
+        Validating Api call to add planet to user favourite with custom_name
         """
         planet = Planet.objects.first()
         user_id = faker.pyint()
@@ -206,6 +212,10 @@ class FavouritePlanetApiTest(APITestCase):
         self.assertEqual(response.json(), {"data": data})
 
     def test_post_add_favourite_planet_with_incorrect_param(self):
+        """
+        Validating favourite Api , returns validationerror incase the parameters are malformed
+        """
+        # invalid planet_id
         user_id = faker.pyint()
         url = reverse("favourite-planet")
         custom_name = faker.word()
@@ -220,6 +230,7 @@ class FavouritePlanetApiTest(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        # invalid user_id
         planet = Planet.objects.first()
         response = self.client.post(
             url,
