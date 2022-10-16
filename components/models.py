@@ -21,7 +21,7 @@ class Movie(models.Model):
 class FavouritePlanet(models.Model):
     user_id = models.PositiveIntegerField()
     planet = models.ForeignKey(Planet, on_delete=models.CASCADE)
-    custom_name = models.CharField(max_length=250, null=True)
+    custom_name = models.CharField(max_length=250, null=True, db_index=True)
 
     class Meta:
         unique_together = (
@@ -33,7 +33,7 @@ class FavouritePlanet(models.Model):
 class FavouriteMovie(models.Model):
     user_id = models.PositiveIntegerField()
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    custom_title = models.CharField(max_length=250, null=True)
+    custom_title = models.CharField(max_length=250, null=True, db_index=True)
 
     class Meta:
         unique_together = (
