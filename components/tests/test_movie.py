@@ -137,7 +137,8 @@ class MovieListApiTest(APITestCase):
             custom_title=search_title_1,
         )
 
-        custom_title_2 = faker.word()
+        search_title_2 = faker.word()
+        custom_title_2 = f"{search_title_2}{faker.word()}"
         user_id_2 = faker.pyint(min_value=user_id_1 + 1)
 
         FavouriteMovieFactory(
@@ -164,10 +165,10 @@ class MovieListApiTest(APITestCase):
                 self.assertEqual(node["title"], movie_without_custom_title.title)
                 self.assertFalse(node["is_favourite"])
 
-        # Incase of user 2, searched title matches with only favourite custom title, hence 1 record returned
+        # Incase of user 2, searched title partially matches with only favourite custom title, hence 1 record returned
         url = reverse("movie-list")
         response = self.client.get(
-            url, data={"user_id": user_id_2, "title": custom_title_2}, format="json"
+            url, data={"user_id": user_id_2, "title": search_title_2}, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 1)

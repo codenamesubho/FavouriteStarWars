@@ -33,10 +33,10 @@ class MovieListView(APIView):
             user_favourites = FavouriteMovie.objects.none()
 
         if title:
-            user_favourites = user_favourites.filter(custom_title=title)
+            user_favourites = user_favourites.filter(custom_title__icontains=title)
             favourite_renamed_movies = [obj.movie_id for obj in user_favourites]
             queryset = queryset.filter(
-                Q(title=title) | Q(id__in=favourite_renamed_movies)
+                Q(title__icontains=title) | Q(id__in=favourite_renamed_movies)
             ).distinct()
 
         user_favourites_map = {
@@ -73,10 +73,10 @@ class PlanetListView(APIView):
             user_favourites = FavouritePlanet.objects.none()
 
         if name:
-            user_favourites = user_favourites.filter(custom_name=name)
+            user_favourites = user_favourites.filter(custom_name__icontains=name)
             favourite_renamed_planets = [obj.planet_id for obj in user_favourites]
             queryset = queryset.filter(
-                Q(name=name) | Q(id__in=favourite_renamed_planets)
+                Q(name__icontains=name) | Q(id__in=favourite_renamed_planets)
             ).distinct()
 
         user_favourites_map = {

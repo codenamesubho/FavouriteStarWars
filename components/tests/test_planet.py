@@ -133,7 +133,8 @@ class PlanetListApiTest(APITestCase):
             custom_name=search_name_1,
         )
 
-        custom_name_2 = faker.word()
+        search_name_2 = faker.word()
+        custom_name_2 = f"{search_name_2}{faker.word()}"
         user_id_2 = faker.pyint(min_value=user_id_1 + 1)
 
         FavouritePlanetFactory(
@@ -160,10 +161,10 @@ class PlanetListApiTest(APITestCase):
                 self.assertEqual(node["name"], planet_without_custom_name.name)
                 self.assertFalse(node["is_favourite"])
 
-        # Incase of user 2, searched name matches with only favourite custom name, hence 1 record returned
+        # Incase of user 2, searched name partially matches with only favourite custom name, hence 1 record returned
         url = reverse("planet-list")
         response = self.client.get(
-            url, data={"user_id": user_id_2, "name": custom_name_2}, format="json"
+            url, data={"user_id": user_id_2, "name": search_name_2}, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 1)
